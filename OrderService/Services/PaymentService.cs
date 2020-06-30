@@ -17,7 +17,7 @@ namespace OrderService.Services
         {
             // Some logic
             // Call to payment service
-            var content = new StringContent(JsonSerializer.Serialize(payment));
+            var content = new StringContent(JsonSerializer.Serialize(payment), System.Text.Encoding.Default, "application/json");
             var response = await _httpClient.PostAsync("payments", content);
 
             PaymentResponse result = null;
