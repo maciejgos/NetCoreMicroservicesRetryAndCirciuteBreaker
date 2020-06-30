@@ -5,6 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OrderService.Services;
 using System;
+using Microsoft.Extensions.Http;
+using Polly;
+using System.Net.Http;
+using Polly.Extensions.Http;
 
 namespace OrderService
 {
@@ -21,7 +25,10 @@ namespace OrderService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddHttpClient<IPaymentService, PaymentService>(client => client.BaseAddress = new Uri(Configuration["PaymentServiceUrl"]));
+            services.AddHttpClient<IPaymentService, PaymentService>(client =>
+            {
+                client.BaseAddress = new Uri(Configuration["PaymentServiceUrl"]);
+            }).AddPolicyHandler(GetRetryPolicy());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,6 +49,13 @@ namespace OrderService
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions.HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(2));
         }
     }
 }
