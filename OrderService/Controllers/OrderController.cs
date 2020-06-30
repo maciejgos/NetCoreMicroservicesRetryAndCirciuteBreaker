@@ -15,6 +15,7 @@ namespace OrderService.Controllers
             _paymentService = paymentService;
         }
 
+        [HttpPost]
         public async Task<IActionResult> Post([FromBody] OrderDto order)
         {
             // Some logic to place an order
