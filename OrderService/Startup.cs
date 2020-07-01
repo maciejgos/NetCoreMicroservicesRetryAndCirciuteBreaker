@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OrderService.Services;
 using System;
-using Microsoft.Extensions.Http;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
@@ -29,6 +28,11 @@ namespace OrderService
             {
                 client.BaseAddress = new Uri(Configuration["PaymentServiceUrl"]);
             }).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddSwaggerGen(setup => 
+            {
+                setup.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Order service API", Version = "1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +52,12 @@ namespace OrderService
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            
+            app.UseSwagger().UseSwaggerUI(c => 
+            {
+                c.SwaggerEndpoint("../swagger/v1/swagger.json", "Order Service API");
             });
         }
 
